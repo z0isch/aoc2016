@@ -1,3 +1,3 @@
 # aoc2016
 
-add description of aoc2016 here
+Advent of Code 2016 solutions: http://adventofcode.com/2016
