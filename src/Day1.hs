@@ -23,8 +23,8 @@ walkParser :: Parser [(TurnDir,Integer)]
 walkParser = commaSep1 ((,) <$> turnParser <*> integer)
 
 makeAction :: (TurnDir,Integer) -> [Action]
-makeAction (L,i) = Turn L: map (const Move) [1..i]
-makeAction (R,i) = Turn R: map (const Move) [1..i]
+makeAction (L,i) = Turn L: genericTake (i-1) (repeat Move)
+makeAction (R,i) = Turn R: genericTake (i-1) (repeat Move)
 
 step :: (Orientation,(Integer,Integer)) -> Action -> (Orientation,(Integer,Integer))
 step (N,(x,y)) (Turn L) = (W,(x,y))
