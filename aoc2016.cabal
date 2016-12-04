@@ -18,7 +18,8 @@ library
   ghc-options:         -Wall
   exposed-modules:     Day1
                      , Day2
-                    ,  Day3
+                     , Day3
+                     , Day4
   build-depends:       base >= 4.7 && < 5
                      , trifecta
                      , containers
@@ -41,6 +42,7 @@ test-suite aoc2016-test
                      , aoc2016
                      , hspec
                      , containers
+                     , trifecta
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
