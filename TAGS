@@ -1,0 +1,193 @@
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Spec.hs,31
+main main8,9
+main main9,10
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Day6\Test.hs,70
+module Day6.Test Day6.Test0,1
+  tests tests5,6
+  tests tests6,7
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Day5\Test.hs,66
+module Day5.Test Day5.Test0,1
+tests tests5,6
+tests tests6,7
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Day4\Test.hs,66
+module Day4.Test Day4.Test0,1
+tests tests5,6
+tests tests6,7
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Day3\Test.hs,170
+module Day3.Test Day3.Test0,1
+tests tests6,7
+tests tests7,8
+untupulize untupulize18,19
+untupulize untupulize19,20
+makeSet makeSet21,22
+makeSet makeSet22,23
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/test\Day2\Test.hs,66
+module Day2.Test Day2.Test0,1
+tests tests5,6
+tests tests6,7
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day6.hs,73
+module Day6 Day60,1
+part1=part12,3
+part2=part23,4
+test1=test14,5
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day5.hs,393
+module Day5 Day50,1
+isValidHash isValidHash8,9
+isValidHash isValidHash9,10
+isValidHash2 isValidHash211,12
+isValidHash2 isValidHash212,13
+part1 part120,21
+part1 part121,22
+takeWhileInclusive takeWhileInclusive26,27
+takeWhileInclusive takeWhileInclusive27,28
+part2 part233,34
+part2 part234,35
+test1 test148,49
+test1 test149,50
+input1 input150,51
+input1 input151,52
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day4.hs,751
+module Day4 Day40,1
+data RoomCode RoomCode7,8
+data RoomCode = RoomCode RoomCode7,8
+part1Parser part1Parser10,11
+part1Parser part1Parser11,12
+roomCodeParer roomCodeParer13,14
+roomCodeParer roomCodeParer14,15
+mostUsedLetters mostUsedLetters19,20
+mostUsedLetters mostUsedLetters20,21
+compareByLengthThenLetter compareByLengthThenLetter22,23
+compareByLengthThenLetter compareByLengthThenLetter23,24
+isValidRoom isValidRoom28,29
+isValidRoom isValidRoom29,30
+breakCode breakCode31,32
+breakCode breakCode32,33
+shiftCypher shiftCypher34,35
+shiftCypher shiftCypher35,36
+part1 part137,38
+part1 part138,39
+part2 part242,43
+part2 part243,44
+input1 input147,48
+input1 input148,49
+test1 test149,50
+test1 test150,51
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day3.hs,463
+module Day3 Day30,1
+isValidTriangle isValidTriangle4,5
+isValidTriangle isValidTriangle5,6
+tupulize tupulize9,10
+tupulize tupulize10,11
+part1 part112,13
+part1 part113,14
+makeTriples makeTriples15,16
+makeTriples makeTriples16,17
+part2Parser part2Parser23,24
+part2Parser part2Parser24,25
+part2 part226,27
+part2 part227,28
+test1 test129,30
+test1=test130,31
+test2 test231,32
+test2 test232,33
+input1 input133,34
+input1 input134,35
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day2.hs,1016
+module Day2 Day20,1
+data Move Move7,8
+data Move = U U7,8
+data Move = U | D D7,8
+data Move = U | D | L L7,8
+data Move = U | D | L | RR7,8
+codeParser codeParser10,11
+codeParser codeParser11,12
+moveParser moveParser13,14
+moveParser moveParser14,15
+move move19,20
+  | moved `elem`elem21,22
+doCodeLine doCodeLine30,31
+doCodeLine doCodeLine31,32
+doCode doCode33,34
+doCode doCode34,35
+data MoveAlg MoveAlg39,40
+data MoveAlg = MoveAlg MoveAlg39,40
+type MoveFn MoveFn40,41
+type RowFn RowFn41,42
+type ColFn ColFn42,43
+moveFn1 moveFn144,45
+moveFn1 moveFn145,46
+getRow1 getRow149,50
+getRow1 getRow150,51
+getCol1 getCol151,52
+getCol1 getCol152,53
+grid2 grid254,55
+grid2 grid255,56
+moveFn2 moveFn261,62
+moveFn2 moveFn262,63
+getRow2 getRow278,79
+getRow2 getRow279,80
+getCol2 getCol280,81
+getCol2 getCol281,82
+part1 part183,84
+part1 part184,85
+part2 part289,90
+part2 part290,91
+test1 test195,96
+test1 test196,97
+input input97,98
+input input98,99
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/src\Day1.hs,915
+module Day1 Day10,1
+data Orientation Orientation9,10
+data Orientation = N N9,10
+data Orientation = N | S S9,10
+data Orientation = N | S | E E9,10
+data Orientation = N | S | E | WW9,10
+data TurnDir TurnDir12,13
+data TurnDir = L L12,13
+data TurnDir = L | RR12,13
+data Action Action15,16
+data Action = Turn Turn15,16
+data Action = Turn TurnDir | MoveMove15,16
+turnParser turnParser18,19
+turnParser turnParser19,20
+walkParser walkParser21,22
+walkParser walkParser22,23
+makeAction makeAction24,25
+makeAction makeAction25,26
+step step28,29
+step step29,30
+doWalk doWalk42,43
+doWalk doWalk43,44
+walk walk45,46
+walk walk46,47
+squashTurns squashTurns48,49
+squashTurns squashTurns49,50
+makeRevisitMap makeRevisitMap56,57
+makeRevisitMap makeRevisitMap57,58
+part1 part159,60
+part1 part160,61
+part2 part264,65
+part2 part265,66
+input input72,73
+input input73,74
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/Setup.hs,15
+main main1,2
+
+c:/Users/aruf.BELLARMINE/Desktop/aoc2016/app\Main.hs,52
+module Main Main0,1
+main main2,3
+main main3,4

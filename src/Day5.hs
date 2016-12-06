@@ -15,36 +15,38 @@ isValidHash2 s = isValidHash s && isValidPosition (readMay [s !! 5])
     isValidPosition :: Maybe Integer -> Bool
     isValidPosition Nothing = False
     isValidPosition (Just p)
-      | p<8 && p>=0 = True
-      | otherwise   = False
-
+      | p < 8 && p >= 0 = True
+      | otherwise = False
 
 part1 :: String -> String
-part1 c = take 8
-          $ map (!! 5)
-          $ filter isValidHash
-          $ map (md5s . Str . (++) c . show) ([0..] :: [Integer])
+part1 c =
+    take 8 $
+    map (!! 5) $
+    filter isValidHash $ map (md5s . Str . (++) c . show) ([0 ..] :: [Integer])
 
 takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
 takeWhileInclusive _ [] = []
-takeWhileInclusive p (x:xs) = x : if p x then takeWhileInclusive p xs
-                                         else []
+takeWhileInclusive p (x:xs) =x : if p x
+        then takeWhileInclusive p xs
+        else []
 
 part2 :: String -> String
-part2 c = foldMap ((:[]) . fromJust)
-    $ last
-    $ takeWhileInclusive ((7 >=) . S.length . S.takeWhileL isJust)
-    $ scanl' setFold (S.fromList $ replicate 8 Nothing)
-    $ map getCoords
-    $ filter isValidHash2
-    $ map (md5s . Str . (++) c . show) ([0..] :: [Integer])
+part2 c =
+    foldMap ((: []) . fromJust) $
+    last $
+    takeWhileInclusive ((7 >=) . S.length . S.takeWhileL isJust) $
+    scanl' setFold (S.fromList $ replicate 8 Nothing) $
+    map getCoords $
+    filter isValidHash2 $
+    map (md5s . Str . (++) c . show) ([0 ..] :: [Integer])
   where
-    getCoords :: String -> (Int,Char)
+    getCoords :: String -> (Int, Char)
     getCoords x = (read [x !! 5] :: Int, x !! 6)
-    setFold :: S.Seq (Maybe Char) -> (Int,Char) -> S.Seq (Maybe Char)
-    setFold xs (p,x) =  case xs `S.index` p of
-                            Nothing -> S.update p (Just x) xs
-                            _       -> xs
+    setFold :: S.Seq (Maybe Char) -> (Int, Char) -> S.Seq (Maybe Char)
+    setFold xs (p,x) =
+        case xs `S.index` p of
+            Nothing -> S.update p (Just x) xs
+            _ -> xs
 test1 :: String
 test1 = "abc"
 input1 :: String
