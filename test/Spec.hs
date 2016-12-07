@@ -3,8 +3,8 @@ import qualified Day3.Test  as Day3
 import qualified Day4.Test  as Day4
 import qualified Day5.Test  as Day5
 import qualified Day6.Test  as Day6
-
+import qualified Day7.Test  as Day7
 import           Test.Hspec
 
 main :: IO ()
-main = hspec Day6.tests
+main = hspec Day7.tests

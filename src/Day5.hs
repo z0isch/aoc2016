@@ -22,7 +22,8 @@ part1 :: String -> String
 part1 c =
     take 8 $
     map (!! 5) $
-    filter isValidHash $ map (md5s . Str . (++) c . show) ([0 ..] :: [Integer])
+    filter isValidHash $
+    map (md5s . Str . (++) c . show) ([0 ..] :: [Integer])
 
 takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
 takeWhileInclusive _ [] = []
@@ -46,7 +47,7 @@ part2 c =
     setFold xs (p,x) =
         case xs `S.index` p of
             Nothing -> S.update p (Just x) xs
-            _ -> xs
+            _       -> xs
 test1 :: String
 test1 = "abc"
 input1 :: String
