@@ -2,7 +2,6 @@ module Day7 (part1, part2, test1, test2) where
 
 import           Control.Applicative
 import           Data.List
-import           Data.List.Split
 import           Text.Trifecta
 
 data IPv7Part = Hypernet String | Supernet String
@@ -20,7 +19,7 @@ parseInput :: String -> Result [IPv7]
 parseInput = parseString (some (ipv7parser <* skipOptional newline)) mempty
 
 getSectionLengths :: Int -> String -> [String]
-getSectionLengths i = filter ((== i) . length) . concatMap (chunksOf i) . tails
+getSectionLengths i = filter ((== i) . length) . map (take i) . tails
 
 abaSections :: String -> [String]
 abaSections = filter isAba . getSectionLengths 3
