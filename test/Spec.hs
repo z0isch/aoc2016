@@ -10,4 +10,4 @@ import qualified Day9.Test  as Day9
 import           Test.Hspec
 
 main :: IO ()
-main = hspec Day9.tests
+main = hspec Day8.tests

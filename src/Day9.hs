@@ -19,12 +19,12 @@ compressParser = do
   s <- count (fromIntegral x) anyChar
   return $ Compressed (s,i)
 
-parseInput :: String -> [CompressedInput]
-parseInput = fromSuccess . parseString inputParser mempty
-
 fromSuccess :: Result x -> x
 fromSuccess (Success x) = x
 fromSuccess (Failure x) = error (show x)
+
+parseInput :: String -> [CompressedInput]
+parseInput = fromSuccess . parseString inputParser mempty
 
 decompress :: [CompressedInput] -> String
 decompress = foldMap f
@@ -32,15 +32,15 @@ decompress = foldMap f
     f (Plain s)          = s
     f (Compressed (s,i)) = concat $ replicate (fromIntegral i) s
 
-getLengthCompress2 :: CompressedInput -> Integer
-getLengthCompress2 (Plain s)  = genericLength s
-getLengthCompress2 (Compressed (c,i)) = i * sum (map getLengthCompress2 $ parseInput c)
+lengthDecompress2 :: CompressedInput -> Integer
+lengthDecompress2 (Plain s)  = genericLength s
+lengthDecompress2 (Compressed (c,i)) = i * sum (map lengthDecompress2 $ parseInput c)
 
 part1 :: String -> String
 part1 = decompress .  parseInput
 
 part2 :: String -> Integer
-part2 = sum . map getLengthCompress2 . parseInput
+part2 = sum . map lengthDecompress2 . parseInput
 
 part1Solution :: Int
 part1Solution = length $ part1 input1

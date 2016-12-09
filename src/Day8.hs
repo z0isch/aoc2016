@@ -14,9 +14,10 @@ instructionParser :: Parser Instruction
 instructionParser = try rectParser <|> try rotateRParser <|> rotateCParser
   where
     naturalInt = fromIntegral <$> natural
-    rotateCParser = (\_ x _ y -> RotateC x y) <$> string "rotate column x=" <*> naturalInt <*> string "by " <*> naturalInt
-    rotateRParser = (\_ x _ y -> RotateR x y) <$> string "rotate row y=" <*> naturalInt <*> string "by " <*> naturalInt
-    rectParser = (\_ x _ y -> Rect x y) <$> string "rect " <*> naturalInt <*> char 'x' <*> naturalInt
+    cooordsParser d = d <$> naturalInt <*> (string "by " *> naturalInt)
+    rotateCParser = string "rotate column x=" *> cooordsParser RotateC
+    rotateRParser = string "rotate row y=" *> cooordsParser RotateR
+    rectParser =  string "rect " *> (Rect <$> naturalInt <*> (char 'x' *> naturalInt))
 
 parseInput :: String -> Result [Instruction]
 parseInput = parseString (some (instructionParser <* skipOptional windowsNewLine)) mempty
