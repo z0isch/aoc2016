@@ -21,7 +21,7 @@ getWalkableAdjacents o (x,y)
   where
     walkable Nothing     = False
     walkable (Just Wall) = False
-    walkable _           =True
+    walkable (Just Open) = True
 
 getTile :: Integer -> Coord -> Maybe Tile
 getTile o (x,y)
