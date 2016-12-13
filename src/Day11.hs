@@ -1,19 +1,36 @@
-module Day11 (part1, part1', part2, test1) where
+{-# LANGUAGE DeriveGeneric #-}
+module Day11 (part1, part2, test1, testStartState, part1Solution,part2Solution) where
 
+import           Control.Arrow    (second)
+import           Data.Foldable
+import           Data.Graph.AStar
+import           Data.Hashable
+import qualified Data.HashSet     as H
 import           Data.List
-import           Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
-import           Data.Set        (Set)
-import qualified Data.Set        as Set
+import           Data.Map.Strict  (Map)
+import qualified Data.Map.Strict  as Map
+import           Data.Set         (Set)
+import qualified Data.Set         as Set
+import           GHC.Generics     (Generic)
 
 data Gen = Gen String
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Generic)
+instance Hashable Gen
 data Chip = Chip String
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Generic)
+instance Hashable Chip
 
 type ElevatorFloor = Int
 data ProbState = ProbState ElevatorFloor (Map Int (Set Gen)) (Map Int (Set Chip))
   deriving (Eq,Ord,Show)
+data HProbState = HProbState ElevatorFloor [(Int,[Gen])] [(Int,[Chip])]
+  deriving (Eq,Ord,Show,Generic)
+instance Hashable HProbState
+
+fromHState :: HProbState -> ProbState
+fromHState (HProbState e gs cs) = ProbState e (Map.fromList $ map (second Set.fromList) gs) (Map.fromList $ map (second Set.fromList) cs)
+toHState :: ProbState -> HProbState
+toHState (ProbState e gs cs) = HProbState e (map (second Set.toList) $ Map.toList gs) (map (second Set.toList) $ Map.toList cs)
 
 validFloor :: Set Gen -> Set Chip -> Bool
 validFloor gs cs
@@ -26,8 +43,8 @@ validState (ProbState _ gs' cs') = and $ zipWith validFloor (Map.elems gs') (Map
 --nextStates :: ProbState -> [ProbState]
 nextStates (ProbState e gs cs) = filter validState
                                 $ nub
-                                $ concat
-                                $ mixedStates ++ singleGStates ++ doubleGStates ++ singleCStates ++ doubleCStates
+                                $ concat . concat
+                                $ [mixedStates,singleGStates,doubleGStates,singleCStates,doubleCStates]
   where
     singleGStates = map (\nE -> map (f nE . (:[])) singleGs) nextElevators
     doubleGStates = map (\nE -> map (f nE) doubleGs) nextElevators
@@ -43,14 +60,43 @@ nextStates (ProbState e gs cs) = filter validState
     doubleCs = [[c1,c2] | c1 <- singleCs,c2 <- singleCs, c1 /= c2]
     mixed = [(g,c) | g@(Gen gStr) <-singleGs, c@(Chip cStr) <- singleCs, gStr == cStr]
 
-part1 = find (== test1) $ head $ dropWhile (notElem test1) $ iterate (\ss -> foldl' (flip delete) (concatMap nextStates ss) ss) [startState]
-part1' = length $ iterate (\ss -> foldl' (flip delete) (concatMap nextStates ss) ss) [startState] !!  9
-part2 = undefined
+h :: HProbState -> Int
+h (HProbState _ gs cs) = chipS + genS
+  where
+    chipS = sum $ map (\(f,c) -> (4-f) * length c) $ sortOn fst cs
+    genS =  sum $ map (\(f,g) -> (4-f) * length g) $ sortOn fst gs
 
-startState = ProbState 3
+part1 s e = length <$> aStar (H.fromList . map toHState . nextStates . fromHState) (const . const 1) h (toHState s ==) (toHState e)
+part2 = part1
+
+part1Solution = part1 inputStartState input
+part2Solution = part2 input2StartState input2
+
+probStateViz :: ProbState -> IO ()
+probStateViz (ProbState e gs cs) = mapM_ putStrLn floors
+  where
+    floors = map showFloor $ reverse $ sortOn (\(f,_,_) -> f) $ Map.elems $ Map.mapWithKey (\f g -> (f,g,Map.findWithDefault Set.empty f cs)) gs
+    showFloor (f,gfs,cfs) = show f ++ " " ++ (if f == e then "E" else " ") ++ " " ++ foldMap shortG gfs ++ foldMap shortC cfs
+    shortG (Gen g) = g++"G "
+    shortC (Chip c) = c++"M "
+
+input2 =  ProbState 0
+          (Map.fromList [(0,Set.fromList [Gen "T", Gen "Pl",Gen "S",Gen "E",Gen "D"]), (1,Set.empty),(2,Set.fromList [Gen"Pr", Gen"R"]),(3,Set.empty)])
+          (Map.fromList [(0,Set.fromList [Chip "T",Chip "E",Chip "D"]),(1,Set.fromList [Chip "Pl",Chip "S"]),(2,Set.fromList [Chip "Pr",Chip "R"]),(3,Set.empty)])
+input2StartState = ProbState 3
+              (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Gen"T",Gen"Pl",Gen"S",Gen"Pr",Gen"R",Gen"E",Gen"D"])])
+              (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Chip"T",Chip"Pl",Chip"S",Chip"Pr",Chip"R",Chip"E",Chip"D"])])
+inputStartState = ProbState 3
+              (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Gen"T",Gen"Pl",Gen"S",Gen"Pr",Gen"R"])])
+              (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Chip"T",Chip"Pl",Chip"S",Chip"Pr",Chip"R"])])
+input = ProbState 0
+          (Map.fromList [(0,Set.fromList [Gen "T", Gen "Pl",Gen "S"]), (1,Set.empty),(2,Set.fromList [Gen"Pr", Gen"R"]),(3,Set.empty)])
+          (Map.fromList [(0,Set.fromList [Chip "T"]),(1,Set.fromList [Chip "Pl",Chip "S"]),(2,Set.fromList [Chip "Pr",Chip "R"]),(3,Set.empty)])
+
+testStartState = ProbState 3
               (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Gen"H",Gen"L"])])
               (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Chip "H",Chip "L"])])
 
 test1 = ProbState 0
-          (Map.fromList [(0,Set.empty), (1,Set.fromList [Gen "H"]),(2,Set.fromList [Gen"G"]),(3,Set.empty)])
+          (Map.fromList [(0,Set.empty), (1,Set.fromList [Gen "H"]),(2,Set.fromList [Gen"L"]),(3,Set.empty)])
           (Map.fromList [(0,Set.fromList [Chip "H",Chip "L"]),(1,Set.empty),(2,Set.empty),(3,Set.empty)])

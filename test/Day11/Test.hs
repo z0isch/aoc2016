@@ -7,4 +7,4 @@ tests :: SpecWith ()
 tests = do
   describe "Part1" $ do
     it "Test1" $ do
-      part1 test1 `shouldBe` undefined
+      part1 testStartState test1 `shouldBe` (Just 11)

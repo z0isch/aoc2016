@@ -38,13 +38,13 @@ getGraph :: Integer -> Integer -> Coord -> Gr Coord (Coord,Coord)
 getGraph o d c@(xg,yg) = mkGraph
                       [(getNode (x,y), (x,y)) | x <- [xg-d..xg+d], y <- [yg-d..yg+d], withinRange o d (x,y) c]
                       [(getNode (x,y), getNode (x',y'),((x,y),(x',y')))
-                        | x <- [xg-d..xg+d]
-                        , y <- [yg-d..yg+d]
-                        , x' <- [xg-d..xg+d]
-                        , y' <- [yg-d..yg+d]
-                        , (x',y') `elem` getWalkableAdjacents o (x,y)
-                        , withinRange o d (x,y) c
-                        , withinRange o d (x',y') c
+                      | x <- [xg-d..xg+d]
+                      , y <- [yg-d..yg+d]
+                      , x' <- [xg-d..xg+d]
+                      , y' <- [yg-d..yg+d]
+                      , (x',y') `elem` getWalkableAdjacents o (x,y)
+                      , withinRange o d (x,y) c
+                      , withinRange o d (x',y') c
                       ]
 
 integralDist :: Coord -> Coord -> Integer
