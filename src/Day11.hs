@@ -40,33 +40,33 @@ validFloor gs cs
 validState :: ProbState -> Bool
 validState (ProbState _ gs' cs') = and $ zipWith validFloor (Map.elems gs') (Map.elems cs')
 
---nextStates :: ProbState -> [ProbState]
+nextStates :: ProbState -> [ProbState]
 nextStates (ProbState e gs cs) = filter validState
-                                $ nub
                                 $ concat . concat
                                 $ [mixedStates,singleGStates,doubleGStates,singleCStates,doubleCStates]
   where
     singleGStates = map (\nE -> map (f nE . (:[])) singleGs) nextElevators
-    doubleGStates = map (\nE -> map (f nE) doubleGs) nextElevators
+    doubleGStates = map (\nE -> map (f nE) doubleGs) notDownNextElevators
     singleCStates = map (\nE ->  map (h nE . (:[])) singleCs) nextElevators
-    doubleCStates = map (\nE ->  map (h nE) doubleCs) nextElevators
-    mixedStates = map (\nE -> map (\(g,c) -> ProbState nE (Map.adjust (Set.insert g) nE (Map.adjust (Set.delete g) e gs)) (Map.adjust (Set.insert c) nE (Map.adjust (Set.delete c) e cs))) mixed) nextElevators
+    doubleCStates = map (\nE ->  map (h nE) doubleCs) notDownNextElevators
+    mixedStates = map (\nE -> map (\(g,c) -> ProbState nE (Map.adjust (Set.insert g) nE (Map.adjust (Set.delete g) e gs)) (Map.adjust (Set.insert c) nE (Map.adjust (Set.delete c) e cs))) mixed) notDownNextElevators
     f nE gs' = ProbState nE (foldl' (\m g -> Map.adjust (Set.insert g) nE m) (foldl' (\m g -> Map.adjust (Set.delete g) e m) gs gs') gs') cs
     h nE cs' = ProbState nE gs (foldl' (\m c -> Map.adjust (Set.insert c) nE m) (foldl' (\m c -> Map.adjust (Set.delete c) e m) cs cs') cs')
     nextElevators = [nE | nE <- [e-1,e+1], nE >= 0 && nE < 4]
+    notDownNextElevators = [nE | nE <- [e+1], nE >= 0 && nE < 4]
     singleGs = Set.toList (Map.findWithDefault Set.empty e gs)
     doubleGs = [[g1,g2] | g1 <- singleGs, g2 <- singleGs, g1 /= g2]
     singleCs = Set.toList (Map.findWithDefault Set.empty e cs)
     doubleCs = [[c1,c2] | c1 <- singleCs,c2 <- singleCs, c1 /= c2]
     mixed = [(g,c) | g@(Gen gStr) <-singleGs, c@(Chip cStr) <- singleCs, gStr == cStr]
 
-h :: HProbState -> Int
-h (HProbState _ gs cs) = chipS + genS
+heuristic :: HProbState -> Int
+heuristic (HProbState _ gs cs) = chipS + genS
   where
-    chipS = sum $ map (\(f,c) -> (4-f) * length c) $ sortOn fst cs
-    genS =  sum $ map (\(f,g) -> (4-f) * length g) $ sortOn fst gs
+    chipS = sum $ map (\(f,c) -> (3-f) * length c) cs
+    genS =  sum $ map (\(f,g) -> (3-f) * length g) gs
 
-part1 s e = length <$> aStar (H.fromList . map toHState . nextStates . fromHState) (const . const 1) h (toHState s ==) (toHState e)
+part1 s e = length <$> aStar (H.fromList . map toHState . nextStates . fromHState) (const . const 1) heuristic (toHState s ==) (toHState e)
 part2 = part1
 
 part1Solution = part1 inputStartState input
