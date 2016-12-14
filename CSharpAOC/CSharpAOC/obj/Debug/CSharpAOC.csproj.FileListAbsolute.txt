@@ -1,6 +1,0 @@
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\bin\Debug\CSharpAOC.exe.config
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\bin\Debug\CSharpAOC.exe
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\bin\Debug\CSharpAOC.pdb
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\obj\Debug\CSharpAOC.csprojResolveAssemblyReference.cache
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\obj\Debug\CSharpAOC.exe
-C:\Users\aruf.BELLARMINE\Desktop\aoc2016\CSharpAOC\CSharpAOC\obj\Debug\CSharpAOC.pdb
