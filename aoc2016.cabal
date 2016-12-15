@@ -29,6 +29,7 @@ library
                      , Day11
                      , Day12
                      , Day13
+                     , Day15
   build-depends:       base >= 4.7 && < 5
                      , trifecta
                      , containers
