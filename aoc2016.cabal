@@ -31,6 +31,7 @@ library
                      , Day13
                      , Day15
                      , Day16
+                     , Day17
   build-depends:       base >= 4.7 && < 5
                      , trifecta
                      , containers
@@ -45,6 +46,8 @@ library
                      , fgl
                      , hashable
                      , text
+                     , mtl
+                     , parallel
   default-language:    Haskell2010
 
 executable aoc2016-exe
