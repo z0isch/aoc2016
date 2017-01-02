@@ -33,6 +33,7 @@ library
                      , Day16
                      , Day17
                      , Day18
+                     , Day19
   build-depends:       base >= 4.7 && < 5
                      , trifecta
                      , containers
@@ -49,6 +50,7 @@ library
                      , text
                      , mtl
                      , parallel
+                     , monad-loops
   default-language:    Haskell2010
 
 executable aoc2016-exe
