@@ -75,6 +75,7 @@ test-suite aoc2016-test
                      , hspec
                      , containers
                      , trifecta
+                     , QuickCheck
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

@@ -11,7 +11,6 @@ tests = do
       part1 4 `shouldBe` 1
       part1 6 `shouldBe` 5
       part1 20 `shouldBe` 9
-      part1' 20 `shouldBe` 9
   describe "Part2" $ do
     it "Test1" $ do
       part2 test1 `shouldBe` 2
@@ -19,4 +18,3 @@ tests = do
       part2 6 `shouldBe` 3
       part2 7 `shouldBe` 5
       part2 10 `shouldBe` 1
-      part2' 10 `shouldBe` 1
