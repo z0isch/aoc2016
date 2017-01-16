@@ -61,10 +61,9 @@ nextStates (ProbState e gs cs) = filter validState
     mixed = [(g,c) | g@(Gen gStr) <-singleGs, c@(Chip cStr) <- singleCs, gStr == cStr]
 
 heuristic :: HProbState -> Int
-heuristic (HProbState _ gs cs) = chipS + genS
+heuristic (HProbState _ gs cs) = movesToTop cs + movesToTop gs
   where
-    chipS = sum $ map (\(f,c) -> (3-f) * length c) cs
-    genS =  sum $ map (\(f,g) -> (3-f) * length g) gs
+    movesToTop = sum . map (\(f,c) -> (3-f) * length c)
 
 part1 s e = length <$> aStar (H.fromList . map toHState . nextStates . fromHState) (const . const 1) heuristic (toHState s ==) (toHState e)
 part2 = part1
@@ -96,7 +95,9 @@ input = ProbState 0
 testStartState = ProbState 3
               (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Gen"H",Gen"L"])])
               (Map.fromList [(0,Set.empty), (1,Set.empty), (2,Set.empty), (3,Set.fromList [Chip "H",Chip "L"])])
-
+test2 = ProbState 0
+          (Map.fromList [(0,Set.fromList [Gen "T", Gen "Pl",Gen "S"]), (1,Set.empty),(2,Set.fromList [Gen"Pr", Gen"R"]),(3,Set.empty)])
+          (Map.fromList [(0,Set.fromList [Chip "T",Chip "Pl"]),(1,Set.fromList [Chip "S"]),(2,Set.fromList [Chip "Pr",Chip "R"]),(3,Set.empty)])
 test1 = ProbState 0
           (Map.fromList [(0,Set.empty), (1,Set.fromList [Gen "H"]),(2,Set.fromList [Gen"L"]),(3,Set.empty)])
           (Map.fromList [(0,Set.fromList [Chip "H",Chip "L"]),(1,Set.empty),(2,Set.empty),(3,Set.empty)])

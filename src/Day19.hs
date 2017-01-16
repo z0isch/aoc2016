@@ -1,56 +1,48 @@
 module Day19 (part1, part2, test1, input1) where
 
-import           Control.Parallel.Strategies
-import           Data.List
-import qualified Data.Set                    as S
+import qualified Data.Sequence as S
 
-data Elf = Elf Integer Integer
+data ElfState = ElfState Int (S.Seq Int)
   deriving (Eq, Show)
 
-start :: Integer -> [Elf]
-start i = map (`Elf` 1 ) [1..i]
+start :: Int -> ElfState
+start i = ElfState 0 $ S.fromList [1..i]
 
-accross :: Integer -> Integer -> Integer
-accross l x = (x + n) `mod` l
+move :: (S.Seq Int -> Int -> Int) -> ElfState -> ElfState
+move f (ElfState s v) = ElfState ns nextV
   where
+    removeI = f v s
+    nextV = remove removeI v
+    nextS = if removeI < s then s else s+1
+    ns = nextS `mod` fromIntegral (S.length nextV)
+
+leftOf :: S.Seq Int -> Int -> Int
+leftOf v s = (s + 1) `mod` fromIntegral (S.length v)
+
+accrossFrom :: S.Seq Int -> Int -> Int
+accrossFrom v s = (s + n) `mod` l
+  where
+    l = S.length v
     n = l `div` 2
 
-move2 :: [Elf] -> [Elf]
-move2 [] = []
-move2 [x] = [x]
-move2 es = remaining2
-  where
-    n = length es `div` 2
-    firstHalf = parMap rpar (f es) $ zip (reverse [0..genericLength es]) $ zip [0..] $ take n es
-    gone = S.fromAscList $ map (fromIntegral . fst) firstHalf
-    remaining = map snd firstHalf ++ parMap rpar (es !!) (filter (`S.notMember` gone) [n..length es-1])
-    secondHalf = parMap rpar (f remaining) $ zip (reverse [0..genericLength remaining]) $ zip [genericLength firstHalf..] $ drop (length firstHalf) remaining
-    gone2 = S.fromAscList $ map (fromIntegral . fst) secondHalf
-    remaining2 = parMap rpar (map snd firstHalf !!) (filter (`S.notMember` gone2) [0..length firstHalf-1]) ++ map snd secondHalf
-    f xs (l,(i,e)) = let p = accross l i + (genericLength xs - l)
-                     in (p,makeSwap e (xs !! fromIntegral p))
+remove :: Int -> S.Seq Int -> S.Seq Int
+remove i v = f $ S.splitAt i v
+    where
+      f (a,b)
+        | S.null a = S.drop 1 b
+        | otherwise = a S.>< S.drop 1 b
 
-move :: [Elf] -> [Elf]
-move []  = []
-move [x] = [x]
-move es
-  | even (length es) = map (uncurry makeSwap) paired
-  | otherwise        = let evens = move (init es)
-                       in tail evens ++ [makeSwap (last es) (head evens)]
-  where
-    everyOther ::  [a] -> ([a],[a])
-    everyOther []       = ([],[])
-    everyOther [x]      = ([x],[])
-    everyOther (x:y:xs) = let (xp,yp) = everyOther xs in (x:xp,y:yp)
-    paired = uncurry zip $ everyOther es
 
-makeSwap :: Elf -> Elf -> Elf
-makeSwap (Elf x xi) (Elf _ yi) = Elf x (xi + yi)
+part1, part2 :: Int -> Int
+part1 i = (\(ElfState _ v) -> v `S.index` 0 ) $
+            head $
+            dropWhile (\(ElfState _ v) -> S.length v > 1) $
+            iterate (move leftOf) (start i)
+part2 i = (\(ElfState _ v) -> v `S.index` 0) $
+            head $
+            dropWhile (\(ElfState _ v) -> S.length v > 1) $
+            iterate (move accrossFrom) (start i)
 
-getElfNum (Elf i _) = i
-part1 i = getElfNum $ head $ head $ dropWhile ((>1) . length) $ iterate move (start i)
-part2 i = getElfNum $ head $ head $ dropWhile ((>1) . length) $ iterate move2 (start i)
-
-test1,input1 :: Integer
+test1,input1 :: Int
 test1 = 5
 input1 = 3005290
