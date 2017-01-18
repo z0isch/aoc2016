@@ -2,11 +2,11 @@ module Main where
 
 import           Control.Monad
 import           Criterion.Main
-import           Day24
+import           Day25
 
 main :: IO ()
 main =
-  part2Solution >>= print
+  part1Solution >>= print
   -- part2Print test1 >>= print
   -- do
   --   f <- readFile "./data/Day22.txt"
