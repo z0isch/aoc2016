@@ -2,7 +2,7 @@ module Main where
 
 import           Control.Monad
 import           Criterion.Main
-import           Day23
+import           Day24
 
 main :: IO ()
 main =
