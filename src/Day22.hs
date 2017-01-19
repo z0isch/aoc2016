@@ -1,16 +1,15 @@
 {-# LANGUAGE DeriveGeneric #-}
-module Day22 (part2Print, part1,part2,test1,test2,test3,part2Solution,profilePart2, moves, moves', heuristic,heuristic') where
+module Day22 (part2Print, part1,part2,test1,test2,test3,part2Solution,profilePart2, moves, heuristic) where
 
 import           Control.Monad
-import           Control.Parallel.Strategies
 import           Data.Graph.AStar
 import           Data.Hashable
-import           Data.HashSet                (HashSet)
-import qualified Data.HashSet                as HS
+import           Data.HashSet     (HashSet)
+import qualified Data.HashSet     as HS
 import           Data.List
-import qualified Data.Map.Strict             as Map
+import qualified Data.Map.Strict  as Map
 import           Data.Maybe
-import           GHC.Generics                (Generic)
+import           GHC.Generics     (Generic)
 import           Safe
 import           Text.Trifecta
 
@@ -18,21 +17,21 @@ type NodeCoord = (Integer,Integer)
 
 data NodeState = NodeState
   { _nodeStateGoal  :: Node
+  , _nodeStateEmpty :: Node
   , _nodeStateNodes :: Map.Map NodeCoord Node
   , _stepsTaken     :: Integer
   }
   deriving (Eq,Show,Ord,Generic)
 instance Hashable NodeState where
-  hashWithSalt salt (NodeState goal ns steps) = mapHashed
+  hashWithSalt salt (NodeState goal empty ns _) = mapHashed `hashWithSalt` empty
     where
-      mapHashed = Map.foldl' step (salt `hashWithSalt` goal) ns `hashWithSalt` steps
-      step n a  = n `hashWithSalt` a
+      mapHashed = Map.foldlWithKey' step (salt `hashWithSalt` goal) ns
+      step n a b = n `hashWithSalt` a `hashWithSalt` b
 
 data Node = Node
   { _nodeCoord :: NodeCoord
   , _nodeSize  :: Integer
   , _nodeUsed  :: Integer
-  , _nodeData  :: [(Integer,Integer)]
   }
   deriving (Eq,Show,Ord,Generic)
 instance Hashable Node
@@ -40,15 +39,16 @@ instance Hashable Node
 parseInput :: String -> NodeState
 parseInput = fromSuccess . parseString (nodeStateMaker <$> some nodeParser <* skipOptional windowsNewLine) mempty
   where
-    nodeStateMaker ns = NodeState (goal nodes) nodes 0
+    nodeStateMaker ns = NodeState (goal nodes) (empty nodes) nodes 0
       where nodes = Map.fromList $ map (\n -> (_nodeCoord n,n)) ns
-    goal ns = ns Map.! (foldr (\(Node (x,y) _ _ _) m -> if y == 0 then max m x else m) 0 ns,0)
+    goal ns = ns Map.! (foldr (\(Node (x,y) _ _) m -> if y == 0 then max m x else m) 0 ns,0)
+    empty ns = snd $ head $ Map.toList $ Map.filter ((==) 0 . _nodeUsed) ns
     fromSuccess (Success x) = x
     fromSuccess (Failure x) = error (show x)
     windowsNewLine = void $ skipOptional newline <* skipOptional (char '\r')
 
 nodeParser :: Parser Node
-nodeParser = (\c s u -> Node c s u [c]) <$>
+nodeParser = Node <$>
             coordParser <*>
             numParser 'T' <*>
             numParser 'T' <*
@@ -59,7 +59,7 @@ nodeParser = (\c s u -> Node c s u [c]) <$>
     numParser c = whiteSpace *> integer <* (char c <* whiteSpace)
 
 isViable :: Node -> Node -> Bool
-isViable (Node c1 _ u1 _) (Node c2 s2 u2 _)
+isViable (Node c1 _ u1) (Node c2 s2 u2)
   | c1 == c2  = False
   | otherwise = u1 > 0 && u1 <= a2
   where a2 = s2 - u2
@@ -67,110 +67,39 @@ isViable (Node c1 _ u1 _) (Node c2 s2 u2 _)
 distance :: NodeCoord -> NodeCoord -> Integer
 distance (x1,y1) (x2,y2) = abs (x1-x2) + abs (y1-y2)
 
-adjacents :: NodeState -> Node -> [Node]
-adjacents (NodeState _ ns _) (Node (x,y) _ _ _) = mapMaybe (`Map.lookup` ns) [(x,y-1),(x,y+1),(x-1,y),(x+1,y)]
-
 moveData :: (Node,Node) -> (Node,Node)
-moveData (Node c1 s1 u1 d1, Node c2 s2 u2 d2) = (Node c1 s1 0 [], Node c2 s2 (u1+u2) (d2 ++ d1))
+moveData (Node c1 s1 u1, Node c2 s2 u2) = (Node c1 s1 0, Node c2 s2 (u1+u2))
 
-unViableNodes :: [Node] -> HashSet Node
-unViableNodes ns = HS.fromList ns `HS.difference` found
-  where found = foldl' (\h (x,y) ->  HS.insert y $ HS.insert x h) HS.empty $ viables ns
-
-moves' :: NodeState -> HashSet NodeState
-moves' state@(NodeState goal ns steps)
-  | goalCanFit = HS.fromList newStates
-  | otherwise = HS.empty
+moves :: NodeState -> [NodeState]
+moves (NodeState goal empty ns steps) = newStates
   where
-    goalCanFit = not $ Map.null $ Map.filter (isViable goal) ns
-    newStates = map (newState . moveData) viableAdjacents
-    newState c = NodeState (newGoal c) (removeUnviable $ adjustedNodes c) (steps+1)
-    newGoal (a,b) = if _nodeCoord a == _nodeCoord goal then b else goal
-    adjustedNodes (a,b) = Map.adjust (const b) (_nodeCoord b) $ Map.adjust (const a) (_nodeCoord a) ns
-    viableAdjacents = filter (uncurry isViable) $ concatMap (\n -> zip (repeat n) $ adjacents state n) $ Map.elems ns
-    removeUnviable m = HS.foldl' (\s n -> Map.delete (_nodeCoord n) s) m $ unViableNodes (Map.elems m)
-
-moves :: NodeState -> HashSet NodeState
-moves state@(NodeState goal ns steps)
-  | goalCanFit = HS.fromList newStates
-  | otherwise = HS.empty
-  where
-    goalCanFit = not $ Map.null $ Map.filter (isViable goal) ns
-    newStates = parMap rpar (newState . moveData) viableAdjacents
-    newState c = NodeState (newGoal c) (adjustedNodes c) (steps+1)
-    newGoal (a,b) = if _nodeCoord a == _nodeCoord goal then b else goal
-    adjustedNodes (a,b) = Map.adjust (const b) (_nodeCoord b) $ Map.adjust (const a) (_nodeCoord a) ns
-    viableAdjacents = filter (uncurry isViable) $ concat $ parMap rpar (\n -> zip (repeat n) $ adjacents state n) $ Map.elems ns
+    newStates = map (newState . moveData) (filter (uncurry isViable) nodesToMove)
+    newState c = NodeState (newGoal c) (newEmpty c) (adjustedNodes c) (steps+1)
+    newGoal (a,b)
+      | _nodeCoord a == _nodeCoord goal = b
+      | otherwise = goal
+    newEmpty (b,a)
+      | _nodeCoord a == _nodeCoord empty = b
+      | otherwise = empty
+    adjustMap a = Map.adjust (const a) (_nodeCoord a)
+    adjustedNodes (a,b) = adjustMap b $ adjustMap a ns
+    distanceFromEtoG = distance (_nodeCoord empty) (_nodeCoord goal)
+    nodesToMove
+      |  distanceFromEtoG == 1 = goalAdjacent ++ emptyAdjacent
+      | otherwise              = emptyAdjacent
+    adjacents (x,y) = mapMaybe (`Map.lookup` ns) [(x-1,y),(x,y-1),(x,y+1),(x+1,y)]
+    emptyAdjacent = map (\n -> (n,empty)) $ adjacents (_nodeCoord empty)
+    goalAdjacent = map (\n -> (goal,n)) $ adjacents (_nodeCoord goal)
 
 isGoal :: NodeState -> Bool
-isGoal (NodeState goal _ _) = _nodeCoord goal == (0,0)
-
-pathsToEnd :: NodeCoord -> [[NodeCoord]]
-pathsToEnd nc = map init $ last $ takeWhile (not.null) $ iterate (concatMap f) (f [nc])
-  where
-    f []     = []
-    f (n:ns) = [nn:n:ns | nn <- nodesTowardEnd n]
-
-nodesTowardEnd :: NodeCoord -> [NodeCoord]
-nodesTowardEnd c@(xc,yc) = [(x,y) | x <- [xc+1,xc,xc-1]
-                                  , y <- [yc+1,yc,yc-1]
-                                  , distance (x,y) c == 1
-                                  , distance (0,0) (x,y) < distance (0,0) c
-
-                           ]
-numberOfMovesToMove :: NodeState -> Node -> Integer
-numberOfMovesToMove state start = go (HS.singleton start) start
-  where
-    go :: HashSet Node -> Node -> Integer
-    go seen n
-      | anyViable = 1
-      | otherwise = 1 + safeMin (map (go (HS.insert n seen)) unseen)
-      where
-        adjs = adjacents state n
-        anyViable = any (uncurry isViable) $ zip (repeat n) adjs
-        unseen = filter (not . (`HS.member` seen)) adjs
-        safeMin [] = 99999
-        safeMin xs = minimum xs
-
-heuristic'' :: NodeState -> Integer
-heuristic'' state@(NodeState goal ns _)
-  | isGoal state = 0
-  | otherwise = distanceToGoal + fromIntegral numMoveMove
-  where
-    goalNodeCoord = _nodeCoord goal
-    distanceToGoal = distance (0,0) goalNodeCoord
-    numMoveMove = minimum $ map (minimum . parMap rpar (numberOfMovesToMove state . getNode)) goalPaths
-    getNode = (Map.!) ns
-    goalPaths = pathsToEnd goalNodeCoord
-
-heuristic' :: NodeState -> Integer
-heuristic' state@(NodeState goal ns _)
-  | isGoal state = 0
-  | otherwise = distanceToGoal + closestViable + fromIntegral clearPathToGoal
-  where
-    goalNodeCoord = _nodeCoord goal
-    clearPathToGoal = minimum $ map (nonViables . map getNode) $
-                      filter (all (`Map.member` ns)) $
-                      pathsToEnd goalNodeCoord
-    nonViables nodes = length nodes - length (filter (isViable goal) nodes)
-    closestViable = minimum $
-                      map (uncurry max) $
-                      filter (\(x,y) -> x == 0 || y == 0) $
-                      map (\(x,y) -> (distance goalNodeCoord (_nodeCoord x),distance goalNodeCoord (_nodeCoord y))) $
-                      viables $ Map.elems ns
-    distanceToGoal = distance (0,0) goalNodeCoord
-    getNode = (Map.!) ns
+isGoal (NodeState goal _ _ _) = _nodeCoord goal == (0,0)
 
 heuristic :: NodeState -> Integer
-heuristic state@(NodeState goal ns _)
-  | isGoal state = 0
-  | otherwise = distanceToGoal + fromIntegral clearPathToGoal
+heuristic (NodeState goal empty _ _) = (5 * distanceToGoal) + distanceToEmpty
   where
     goalNodeCoord = _nodeCoord goal
-    getNode = (Map.!) ns
-    clearPathToGoal = minimum $ map (nonViables . map getNode) $ pathsToEnd goalNodeCoord
-    nonViables nodes = length nodes - length (filter (isViable goal) nodes)
     distanceToGoal = distance (0,0) goalNodeCoord
+    distanceToEmpty = distance goalNodeCoord (_nodeCoord empty)
 
 viables :: [Node] -> [(Node,Node)]
 viables ns = [(a,b) | a <- ns, b <- ns, isViable a b]
@@ -178,30 +107,39 @@ viables ns = [(a,b) | a <- ns, b <- ns, isViable a b]
 part1 :: String -> Int
 part1 = length . viables . Map.elems . _nodeStateNodes . parseInput
 
-printHeuristic :: NodeState -> IO Integer
-printHeuristic s = do
-  let h = heuristic' s
-  print h
-  return h
-
 printMoves :: NodeState -> IO (HashSet NodeState)
 printMoves s = do
-  let mvs = moves' s
-      steps = _stepsTaken <$> headMay (HS.toList mvs)
+  let mvs = moves s
+      steps = _stepsTaken <$> headMay mvs
   print steps
-  return mvs
+  visualize s
+  return $ HS.fromList mvs
 
 part2 :: String -> Maybe Int
-part2 s = length <$> aStar moves (const $ const 1) heuristic' isGoal (parseInput s)
+part2 s = length <$> aStar (HS.fromList . moves) (const $ const 1) heuristic isGoal (parseInput s)
 
-part2Print :: String -> IO Int
-part2Print s = length <$> aStarM printMoves (\_ _ -> return 1) printHeuristic (return . isGoal) (return $ parseInput s)
+part2Print :: String -> IO (Maybe Int)
+part2Print s = fmap length <$> aStarM printMoves (\_ _ -> return 1) (return . heuristic) (return . isGoal) (return $ parseInput s)
 
 profilePart2 :: (NodeState -> HashSet NodeState) -> (NodeState -> Integer) -> String -> Maybe Int
 profilePart2 m h s = length <$> aStar m (const $ const 1) h isGoal (parseInput s)
 
 part2Solution :: IO (Maybe Int)
 part2Solution = part2 <$> readFile "./data/Day22.txt"
+
+visualize :: NodeState -> IO ()
+visualize (NodeState g e ns _) = mapM_ putStrLn l
+  where
+    ordered = map (sortOn (fst .fst)) $
+      groupBy (\((_,y),_) ((_,y'),_) -> y==y') $
+      sortOn (snd . fst) $
+      Map.toList ns
+    l = map (intersperse ' ' . map (c . snd)) ordered
+    c n
+      | e == n         = '_'
+      | g == n         = 'G'
+      | isViable n e   = '.'
+      | otherwise      = '#'
 
 test1 :: String
 test1 = "/dev/grid/node-x0-y0   10T    8T     2T   80%\n/dev/grid/node-x0-y1   11T    6T     5T   54%\n/dev/grid/node-x0-y2   32T   28T     4T   87%\n/dev/grid/node-x1-y0    9T    7T     2T   77%\n/dev/grid/node-x1-y1    8T    0T     8T    0%\n/dev/grid/node-x1-y2   11T    7T     4T   63%\n/dev/grid/node-x2-y0   10T    6T     4T   60%\n/dev/grid/node-x2-y1    9T    8T     1T   88%\n/dev/grid/node-x2-y2    9T    6T     3T   66%"

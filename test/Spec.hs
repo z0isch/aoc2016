@@ -24,4 +24,4 @@ import qualified Day9.Test  as Day9
 import           Test.Hspec
 
 main :: IO ()
-main = hspec Day24.tests
+main = hspec Day22.tests
